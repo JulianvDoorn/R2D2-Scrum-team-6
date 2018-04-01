@@ -19,7 +19,7 @@ def x265(file_in, file_out, bitrate, begin, frames):
 	if file_out == "-":
 		mplayer = Popen([
 			"mplayer",
-			"-cache", "1048576",
+			"-cache", "524288",
 			"-"
 		], stdin=encoder.stdout, stdout=PIPE)
 
@@ -44,7 +44,7 @@ def x264(file_in, file_out, bitrate, begin, frames):
 	if file_out == "-":
 		mplayer = Popen([
 			"mplayer",
-			"-cache", "1048576",
+			"-cache", "524288",
 			"-"
 		], stdin=encoder.stdout, stdout=PIPE)
 
