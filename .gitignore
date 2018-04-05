@@ -1,1 +1,4 @@
 __pycache__/
+*.mov
+*.mp4
+*.y4m
