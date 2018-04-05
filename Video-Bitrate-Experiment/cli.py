@@ -3,7 +3,7 @@
 from cement.core.foundation import CementApp
 from cement.core.controller import CementBaseController, expose
 
-from encoding import Codec
+from Encoding import Codec
 
 
 VERSION = "0.0.1"
