@@ -8,6 +8,7 @@ class CodecReference:
 
 class Codec:
 	class Encode:
+		@staticmethod
 		def x265(istreamStr, ostreamStr, resolution, fps, bitrate, start, duration):
 			pargs = [
 				"ffmpeg",
@@ -55,6 +56,7 @@ class Codec:
 
 			encoder.wait()
 
+		@staticmethod
 		def x264(istreamStr, ostreamStr, resolution, fps, bitrate, start, duration):
 			pargs = [
 				"ffmpeg",
