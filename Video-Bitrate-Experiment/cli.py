@@ -9,7 +9,7 @@ from VideoConfigReader import ConfigReader
 import os.path as path
 
 
-VERSION = "0.0.1"
+VERSION = "0.0.2"
 
 BANNER = """
 R2D2 Encoder CLI Tool v%s
