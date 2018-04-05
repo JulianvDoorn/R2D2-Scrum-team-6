@@ -83,9 +83,8 @@ class Controller(CementBaseController):
 		print("No command specified")
 
 	@expose()
-	def decode(self):
-		print("Unimplemented!")
-		exit(2)
+	def facial_recognition(self):
+		pass
 
 	@expose()
 	def encode(self):
