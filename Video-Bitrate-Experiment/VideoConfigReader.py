@@ -1,15 +1,18 @@
 import ast
-from configparser import SafeConfigParser as ConfigParser
+from configparser import NoOptionError, SafeConfigParser as ConfigParser
 
 class VideoConfig:
-	def __init__(self, filename, source, resolutions, fpss, bitrates):
+	def __init__(self, filename, source, resolution, fps, bitrate, codec, start, duration):
 		self.filename = filename
 		self.source = source
-		self.resolutions = resolutions
-		self.fpss = fpss
-		self.bitrates = bitrates
+		self.resolution = resolution
+		self.fps = fps
+		self.bitrate = bitrate
+		self.codec = codec
+		self.start = start
+		self.duration = duration
 
-class Config:
+class ConfigReader:
 	def __init__(self, istream):
 		self.parser = ConfigParser()
 		self.parser.readfp(istream)
@@ -24,21 +27,38 @@ class Config:
 			resolutions = ast.literal_eval(self.parser.get(s, "resolution"))
 			bitrates = ast.literal_eval(self.parser.get(s, "bitrate"))
 			fpss = ast.literal_eval(self.parser.get(s, "fps"))
+			codecs = ast.literal_eval(self.parser.get(s, "codec"))
+
+			try: # make optional
+				start = self.parser.get(s, "start")
+			except NoOptionError:
+				start = None
+
+			try:
+				duration = self.parser.get(s, "duration")
+			except NoOptionError:
+				duration = None
+
+			filetype = self.parser.get(s, "filetype")
 
 			for r in resolutions:
 				for b in bitrates:
 					for f in fpss:
-						li.append(VideoConfig(
-							str(s) + "_" + str(r) + "_" + str(f) + "_" + str(b) + "k",
-							source,
-							r,
-							f,
-							b
-						))
+						for c in codecs:
+							li.append(VideoConfig(
+								str(s) + "_" + str(r) + "_" + str(f) + "_" + str(c) + "_" + str(b) + "k" + "." + filetype,
+								source,
+								r,
+								f,
+								b,
+								c,
+								start,
+								duration
+							))
 
 		return li
 						
 # example:
-# configFile = Config(open("videos.conf"))
+# configFile = ConfigReader(open("videos.conf"))
 # for f in configFile.getOutputSets():
 # 	print(f.filename)

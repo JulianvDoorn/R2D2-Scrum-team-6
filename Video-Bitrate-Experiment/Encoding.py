@@ -8,25 +8,40 @@ class CodecReference:
 
 class Codec:
 	class Encode:
-		@staticmethod
-		def x265(istreamStr, ostreamStr, bitrate, beginFrame, endFrame):
-			print([
-				"x265",
-				"--bitrate", str(bitrate),
-				"--input", str(istreamStr),
-				"--output", str(ostreamStr),
-				"--seek", str(beginFrame),
-				"--frames", str(endFrame - beginFrame)
-			])
+		def x265(istreamStr, ostreamStr, resolution, fps, bitrate, start, duration):
+			pargs = [
+				"ffmpeg",
+				"-i",
+				str(istreamStr),
+			]
 
-			encoder = Popen([
-				"x265",
-				"--bitrate", str(bitrate),
-				"--input", str(istreamStr),
-				"--output", str(ostreamStr),
-				"--seek", str(beginFrame),
-				"--frames", str(endFrame - beginFrame)
-			], stdout=PIPE)
+			if resolution:
+				pargs.append("-vf")
+				pargs.append("scale=" + str(resolution))
+			if fps:
+				pargs.append("-r")
+				pargs.append(str(fps))
+
+			if bitrate:			
+				pargs.append("-b:v")
+				pargs.append(str(bitrate) + "k")
+
+			if start:
+				pargs.append("-ss")
+				pargs.append(str(start))
+			
+			if duration:
+				pargs.append("-t")
+				pargs.append(str(duration))
+
+			pargs.append("-c:v")
+			pargs.append("libx265")
+
+			pargs.append(str(ostreamStr))
+
+			print(pargs)
+
+			encoder = Popen(pargs, stdout=PIPE)
 
 			if ostreamStr == "-":
 				mplayer = Popen([
@@ -40,16 +55,40 @@ class Codec:
 
 			encoder.wait()
 
-		@staticmethod
-		def x264(istreamStr, ostreamStr, bitrate, beginFrame, endFrame):
-			encoder = Popen([
-				"x264",
-				"--bitrate", str(bitrate),
-				"--seek", str(beginFrame),
-				"--frames", str(endFrame - beginFrame),
-				"-o", str(ostreamStr),
-				str(istreamStr)
-			], stdout=PIPE)
+		def x264(istreamStr, ostreamStr, resolution, fps, bitrate, start, duration):
+			pargs = [
+				"ffmpeg",
+				"-i",
+				str(istreamStr),
+			]
+
+			if resolution:
+				pargs.append("-vf")
+				pargs.append("scale=" + str(resolution))
+			if fps:
+				pargs.append("-r")
+				pargs.append(str(fps))
+
+			if bitrate:			
+				pargs.append("-b:v")
+				pargs.append(str(bitrate) + "k")
+
+			if start:
+				pargs.append("-ss")
+				pargs.append(str(start))
+			
+			if duration:
+				pargs.append("-t")
+				pargs.append(str(duration))
+
+			pargs.append("-c:v")
+			pargs.append("libx265")
+
+			pargs.append(str(ostreamStr))
+
+			print(pargs)
+
+			encoder = Popen(pargs, stdout=PIPE)
 
 			if ostreamStr == "-":
 				mplayer = Popen([
@@ -74,5 +113,7 @@ class Codec:
 
 	codecs = {
 		"x265" : CodecReference(Encode.x265, Decode.x265),
-		"x264" : CodecReference(Encode.x264, Decode.x264)
+		"x264" : CodecReference(Encode.x264, Decode.x264),
+		"h265" : CodecReference(Encode.x265, Decode.x265),
+		"h264" : CodecReference(Encode.x264, Decode.x264)
 	}
