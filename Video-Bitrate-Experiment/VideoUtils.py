@@ -9,12 +9,15 @@ class CodecReference:
 class Codec:
 	class Encode:
 		@staticmethod
-		def x265(istreamStr, ostreamStr, resolution, fps, bitrate, start, duration):
+		def x265(istreamStr, ostreamStr, resolution, fps, bitrate, start, duration, frames):
 			pargs = [
 				"ffmpeg",
 				"-i",
 				str(istreamStr),
 			]
+
+			# remove sound channels
+			pargs.append("-an")
 
 			if resolution:
 				pargs.append("-vf")
@@ -34,6 +37,11 @@ class Codec:
 			if duration:
 				pargs.append("-t")
 				pargs.append(str(duration))
+
+			
+			if frames:
+				pargs.append("-frames")
+				pargs.append(str(frames))
 
 			pargs.append("-c:v")
 			pargs.append("libx265")
@@ -57,12 +65,15 @@ class Codec:
 			encoder.wait()
 
 		@staticmethod
-		def x264(istreamStr, ostreamStr, resolution, fps, bitrate, start, duration):
+		def x264(istreamStr, ostreamStr, resolution, fps, bitrate, start, duration, frames):
 			pargs = [
 				"ffmpeg",
 				"-i",
 				str(istreamStr),
 			]
+
+			# remove sound channels
+			pargs.append("-an")
 
 			if resolution:
 				pargs.append("-vf")
@@ -82,6 +93,11 @@ class Codec:
 			if duration:
 				pargs.append("-t")
 				pargs.append(str(duration))
+
+			
+			if frames:
+				pargs.append("-frames")
+				pargs.append(str(frames))
 
 			pargs.append("-c:v")
 			pargs.append("libx265")

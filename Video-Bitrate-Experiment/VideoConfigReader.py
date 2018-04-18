@@ -2,7 +2,7 @@ import ast
 from configparser import NoOptionError, SafeConfigParser as ConfigParser
 
 class VideoConfig:
-	def __init__(self, filename, source, resolution, fps, bitrate, codec, start, duration):
+	def __init__(self, filename, source, resolution, fps, bitrate, codec, start, duration, frames):
 		self.filename = filename
 		self.source = source
 		self.resolution = resolution
@@ -11,6 +11,7 @@ class VideoConfig:
 		self.codec = codec
 		self.start = start
 		self.duration = duration
+		self.frames = frames
 
 class ConfigReader:
 	def __init__(self, istream):
@@ -28,6 +29,7 @@ class ConfigReader:
 			bitrates = ast.literal_eval(self.parser.get(s, "bitrate"))
 			fpss = ast.literal_eval(self.parser.get(s, "fps"))
 			codecs = ast.literal_eval(self.parser.get(s, "codec"))
+			frames = self.parser.get(s, "frames")
 
 			try: # make optional
 				start = self.parser.get(s, "start")
@@ -53,7 +55,8 @@ class ConfigReader:
 								b,
 								c,
 								start,
-								duration
+								duration,
+								frames
 							))
 
 		return li

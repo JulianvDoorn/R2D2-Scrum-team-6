@@ -3,16 +3,17 @@
 from cement.core.foundation import CementApp
 from cement.core.controller import CementBaseController, expose
 
-from Encoding import Codec
+from VideoUtils import Codec
 from VideoConfigReader import ConfigReader
+from FaceRecognition import FaceRecognition
 
 import os.path as path
 
 
-VERSION = "0.0.2"
+VERSION = "0.0.3"
 
 BANNER = """
-R2D2 Encoder CLI Tool v%s
+R2D2 Encoding and Test CLI Tool v%s
 """ % VERSION
 
 class Controller(CementBaseController):
@@ -62,11 +63,14 @@ class Controller(CementBaseController):
 			print("No such codec: " + str(selectedCodec))
 			exit(1)
 
+	def getVideoFrameCount(self):
+		return self.app.pargs.frames if self.app.pargs.frames else None
+
 	class Meta:
 		label = "base"
 		description = "Bitrate Encoder Help Tool used for Live Video Feed R2D2 Research"
 		arguments = [
-			(["--conf"], dict(help="Allow for reading .conf files for bulk encoding. Usage: cli encode --conf videos.conf")),
+			(["--conf"], dict(help="Allow for reading .conf files for bulk operations. Usage: cli encode --conf videos.conf \n cli face-recognition-test --conf faces.conf")),
 			(["-v", "--version"], dict(action="version", version=BANNER)),
 			(["-i", "--input"], dict(help="Input file")),
 			(["-o", "--output"], dict(help="Output file (dir when --conf is specified)")),
@@ -76,6 +80,7 @@ class Controller(CementBaseController):
 			(["-f", "--fps"], dict(help="Encoded video fps")),
 			(["-s", "--start"], dict(help="Video timestamp to start encoding")),
 			(["-t", "--duration"], dict(help="Video timestamp to last encoding")),
+			(["--frames"], dict(help="The amount of frames to extract"))
 		]
 
 	@expose(hide=True)
@@ -83,8 +88,21 @@ class Controller(CementBaseController):
 		print("No command specified")
 
 	@expose()
-	def facial_recognition(self):
-		pass
+	def face_recognition_test(self):
+		confFile = self.app.pargs.conf
+		dumpFolder = self.app.pargs.output
+
+		if confFile is None:
+			print("No --conf specified")
+			exit(1)
+
+		faceRecognition = FaceRecognition()
+		faceRecognition.setFaceCascadeFile("haarcascade_frontalface_default.xml")
+		faceRecognition.setConfigFile(open(confFile))
+		faceRecognition.doRecognitionRoutine()
+
+		if dumpFolder is not None:
+			faceRecognition.dumpDebugInfo(dumpFolder)
 
 	@expose()
 	def encode(self):
@@ -107,12 +125,13 @@ class Controller(CementBaseController):
 				print("\tbitrate " + str(f.bitrate) + "kbps")
 				print("\tstart " + str(f.start))
 				print("\tend " + str(f.duration))
+				print("\tframes " + str(f.frames))
 			
 				self.app.pargs.codec = f.codec
 				codec = self.getCodec()
 
-#codec.encode(inputFile, outputFile, resolution, fps, bitrate, start, duration)
-				codec.encode(f.source, target, f.resolution, f.fps, f.bitrate, f.start, f.duration)
+#codec.encode(inputFile, outputFile, resolution, fps, bitrate, start, duration, frames)
+				codec.encode(f.source, target, f.resolution, f.fps, f.bitrate, f.start, f.duration, f.frames)
 		else:
 			inputFile = self.getInputFile()
 			outputFile = self.getOutputFile()
@@ -122,8 +141,9 @@ class Controller(CementBaseController):
 			bitrate = self.getBitrate()
 			start = self.getVideoStart()
 			duration = self.getVideoDuration()
+			frames = self.getVideoFrameCount()
 
-			codec.encode(inputFile, outputFile, resolution, fps, bitrate, start, duration)
+			codec.encode(inputFile, outputFile, resolution, fps, bitrate, start, duration, frames)
 
 class App(CementApp):
 	class Meta:
