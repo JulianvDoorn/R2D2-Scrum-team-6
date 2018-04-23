@@ -118,20 +118,23 @@ class Controller(CementBaseController):
 
 			for f in config.getOutputSets():
 				target = path.join(outputFile, f.filename)
-				print("Encoding: " + target)
-				print("\tresolution: " + str(f.resolution))
-				print("\tfps: " + str(f.fps))
-				print("\tcodec " + str(f.codec))
-				print("\tbitrate " + str(f.bitrate) + "kbps")
-				print("\tstart " + str(f.start))
-				print("\tend " + str(f.duration))
-				print("\tframes " + str(f.frames))
-			
-				self.app.pargs.codec = f.codec
-				codec = self.getCodec()
+				if not path.isfile(target):
+					print("Encoding: " + target)
+					print("\tresolution: " + str(f.resolution))
+					print("\tfps: " + str(f.fps))
+					print("\tcodec " + str(f.codec))
+					print("\tbitrate " + str(f.bitrate) + "kbps")
+					print("\tstart " + str(f.start))
+					print("\tend " + str(f.duration))
+					print("\tframes " + str(f.frames))
 
-#codec.encode(inputFile, outputFile, resolution, fps, bitrate, start, duration, frames)
-				codec.encode(f.source, target, f.resolution, f.fps, f.bitrate, f.start, f.duration, f.frames)
+					self.app.pargs.codec = f.codec
+					codec = self.getCodec()
+
+					#codec.encode(inputFile, outputFile, resolution, fps, bitrate, start, duration, frames)
+					codec.encode(f.source, target, f.resolution, f.fps, f.bitrate, f.start, f.duration, f.frames)
+				else:
+					print("Skipping: " + str(target))
 		else:
 			inputFile = self.getInputFile()
 			outputFile = self.getOutputFile()
