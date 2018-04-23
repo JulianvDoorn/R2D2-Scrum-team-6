@@ -14,7 +14,6 @@ class FaceRecognitionImage:
 	def recognize(self):
 		faces = self.faceCascade.detectMultiScale(
 		    self.gray,
-		    scaleFactor=1.2,
 		    minNeighbors=5,
 		    minSize=(30, 30)
 		)
