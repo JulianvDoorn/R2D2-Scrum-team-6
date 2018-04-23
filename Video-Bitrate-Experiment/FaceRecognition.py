@@ -1,5 +1,3 @@
-#!/usr/bin/python3
-
 import cv2
 import os.path as path
 
@@ -63,8 +61,6 @@ class FaceRecognition:
 		self.debugDumpFolder = None
 
 	def doRecognitionRoutine(self):
-		assert(self.faceCascade != None, "No face cascade set")
-
 		for key, image in self.images.items():
 			image.recognize()
 
