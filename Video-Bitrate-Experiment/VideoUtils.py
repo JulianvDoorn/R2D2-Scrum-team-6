@@ -1,5 +1,79 @@
-import sys, subprocess
+import sys, subprocess, cv2
 from subprocess import Popen, PIPE
+from configparser import NoOptionError, SafeConfigParser as ConfigParser
+from os import path
+
+class FrameImage:
+	def __init__(self, source, target, faces, timestamp):
+		self.source = source
+		self.target = target
+		self.faces = faces
+		self.timestamp = timestamp
+		self.image = None
+
+	def buildImage(self):
+		pargs = [
+			"ffmpeg",
+			"-i",
+			self.source,
+			"-vframes",
+			"1",
+			"-q:v",
+			"2",
+			"-ss",
+			self.timestamp,
+			self.target
+		]
+
+		Popen(pargs, stdout=PIPE).wait()
+
+	def loadImage(self):
+		assert path.isfile(self.target), "No such file \"" + str(self.target) + "\""
+		self.image = cv2.imread(self.target)
+
+
+class FrameExtracter:
+	def __init__(self):
+		self.outputFolder = None
+		self.frames = None
+
+	@staticmethod
+	def extractFrame(istreamStr, ostreamStr, timestamp):
+		pargs = [
+			"ffmpeg",
+			"-i",
+			istreamStr,
+			"-vframes",
+			"1",
+			"-q:v",
+			"2",
+			"-ss",
+			timestamp,
+			ostreamStr
+		]
+
+		Popen(pargs, stdout=PIPE).wait()
+
+	def setOutputFile(self, folder):
+		self.outputFolder = folder
+
+	def setConfigFile(self, istream):
+		parser = ConfigParser()
+		parser.readfp(istream)
+
+		sections = parser.section()
+
+		self.frames = []
+
+		for s in sections:
+			source = parser.get(s, "source")
+			faces = parser.get(s, "faces")
+			timestamp = parser.get(s, "timestamp")
+
+			target = str(s) + ".png"
+
+			self.frames.append(FrameImage(source, target, faces, timestamp))
+			self.frames[-1].loadFrameImage()
 
 class CodecReference:
 	def __init__(self, encode, decode):

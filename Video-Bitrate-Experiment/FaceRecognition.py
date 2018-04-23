@@ -2,46 +2,19 @@ import cv2
 import os.path as path
 
 from configparser import NoOptionError, SafeConfigParser as ConfigParser
-
-# Get user supplied values
-#imagePath = sys.argv[1]
-#cascPath = "haarcascade_frontalface_default.xml"
-
-# Create the haar cascade
-#faceCascade = cv2.CascadeClassifier(cascPath)
-
-# Read the image
-#image = cv2.imread(imagePath)
-#gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-
-# Detect faces in the image
-#faces = faceCascade.detectMultiScale(
-#    gray,
-#    scaleFactor=1.1,
-#    minNeighbors=5,
-#    minSize=(30, 30)
-#)
-
-#print("Found {0} faces!".format(len(faces)))
-
-# Draw a rectangle around the faces
-#for (x, y, w, h) in faces:
-#    cv2.rectangle(image, (x, y), (x+w, y+h), (0, 255, 0), 2)
-
-#cv2.imshow("Faces found", image)
-#cv2.waitKey(0)
+from VideoUtils import FrameImage
 
 class FaceRecognitionImage:
-	def __init__(self, faceCascade, imageDir, faceCount):
+	def __init__(self, faceCascade, image, faceCount):
 		self.faceCascade = faceCascade
-		self.image = cv2.imread(imageDir)
+		self.image = image
 		self.faceCount = faceCount
 		self.gray = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
 
 	def recognize(self):
 		faces = self.faceCascade.detectMultiScale(
 		    self.gray,
-		    scaleFactor=1.1,
+		    scaleFactor=1.2,
 		    minNeighbors=5,
 		    minSize=(30, 30)
 		)
@@ -58,7 +31,7 @@ class FaceRecognition:
 	def __init__(self):
 		self.images = None
 		self.faceCascade = None
-		self.debugDumpFolder = None
+		self.tempFolder = None
 
 	def doRecognitionRoutine(self):
 		for key, image in self.images.items():
@@ -67,9 +40,12 @@ class FaceRecognition:
 	def setFaceCascadeFile(self, cascadeFile):
 		self.faceCascade = cv2.CascadeClassifier(cascadeFile)
 
-	def dumpDebugInfo(self, dumpFolder):
+	def setTempFolder(self, folder):
+		self.tempFolder = folder
+
+	def dumpDebugInfo(self):
 		for key, image in self.images.items():
-			image.dumpImage(path.join(dumpFolder, str(key) + ".png"))
+			image.dumpImage(path.join(self.tempFolder, str(key) + ".png"))
 
 	def setConfigFile(self, istream):
 		parser = ConfigParser()
@@ -81,5 +57,15 @@ class FaceRecognition:
 
 		for s in sections:
 			source = parser.get(s, "source")
-			faceCount = int(parser.get(s, "faces"))
-			self.images[str(s)] = FaceRecognitionImage(self.faceCascade, source, faceCount)
+			target = path.join(self.tempFolder, str(s) + ".png")
+			faces = int(parser.get(s, "faces"))
+			timestamp = parser.get(s, "timestamp")
+
+			if not path.isfile(target):
+				frameImage = FrameImage(source, target, faces, timestamp)
+				frameImage.buildImage()
+				frameImage.loadImage()
+
+				self.images[str(s)] = FaceRecognitionImage(self.faceCascade, frameImage.image, faces)
+			else:
+				print("File \"" + str(target) + "\" already exists, skipping")

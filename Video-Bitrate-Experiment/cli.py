@@ -3,14 +3,14 @@
 from cement.core.foundation import CementApp
 from cement.core.controller import CementBaseController, expose
 
-from VideoUtils import Codec
+from VideoUtils import Codec, FrameExtracter
 from VideoConfigReader import ConfigReader
 from FaceRecognition import FaceRecognition
 
 import os.path as path
 
 
-VERSION = "0.0.3"
+VERSION = "0.0.4"
 
 BANNER = """
 R2D2 Encoding and Test CLI Tool v%s
@@ -80,12 +80,35 @@ class Controller(CementBaseController):
 			(["-f", "--fps"], dict(help="Encoded video fps")),
 			(["-s", "--start"], dict(help="Video timestamp to start encoding")),
 			(["-t", "--duration"], dict(help="Video timestamp to last encoding")),
-			(["--frames"], dict(help="The amount of frames to extract"))
+			(["--frames"], dict(help="The amount of frames to extract")),
+			(["--timestamp"], dict(help="The timestamp of the frame to extract"))
 		]
 
 	@expose(hide=True)
 	def default(self):
 		print("No command specified")
+
+	@expose()
+	def extract_frame(self):
+		confFile = self.app.pargs.conf
+		source = self.app.pargs.input
+		target = self.app.pargs.output
+		timestamp = self.app.pargs.timestamp
+		
+		if confFile:
+			assert target == None, "No output folder specified"
+
+			extracter = FrameExtracter()
+			extracter.setConfigFile(confFile)
+			extracter.setOutputFolder(target)
+		else:
+			assert source == None, "No input specified"
+			
+			if target == None:
+				print("No output specified, writing to out.png")
+				target = "out.png"
+
+			FrameExtracter.extractFrame(source, target, timestamp)
 
 	@expose()
 	def face_recognition_test(self):
@@ -97,12 +120,13 @@ class Controller(CementBaseController):
 			exit(1)
 
 		faceRecognition = FaceRecognition()
+		faceRecognition.setTempFolder(dumpFolder)
 		faceRecognition.setFaceCascadeFile("haarcascade_frontalface_default.xml")
 		faceRecognition.setConfigFile(open(confFile))
 		faceRecognition.doRecognitionRoutine()
 
 		if dumpFolder is not None:
-			faceRecognition.dumpDebugInfo(dumpFolder)
+			faceRecognition.dumpDebugInfo()
 
 	@expose()
 	def encode(self):
