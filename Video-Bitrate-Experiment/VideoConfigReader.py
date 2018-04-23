@@ -29,7 +29,6 @@ class ConfigReader:
 			bitrates = ast.literal_eval(self.parser.get(s, "bitrate"))
 			fpss = ast.literal_eval(self.parser.get(s, "fps"))
 			codecs = ast.literal_eval(self.parser.get(s, "codec"))
-			frames = self.parser.get(s, "frames")
 
 			try: # make optional
 				start = self.parser.get(s, "start")
@@ -40,6 +39,11 @@ class ConfigReader:
 				duration = self.parser.get(s, "duration")
 			except NoOptionError:
 				duration = None
+
+			try:
+				frames = self.parser.get(s, "frames")
+			except NoOptionError:
+				frames = None
 
 			filetype = self.parser.get(s, "filetype")
 
