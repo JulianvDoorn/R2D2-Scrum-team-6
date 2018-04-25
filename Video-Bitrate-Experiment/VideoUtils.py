@@ -18,8 +18,8 @@ class FrameImage:
 			self.source,
 			"-vframes",
 			"1",
-			"-q:v",
-			"2",
+#			"-q:v",
+#			"2",
 			"-ss",
 			self.timestamp,
 			self.target
@@ -45,8 +45,8 @@ class FrameExtracter:
 			istreamStr,
 			"-vframes",
 			"1",
-			"-q:v",
-			"2",
+#			"-q:v",
+#			"2",
 			"-ss",
 			timestamp,
 			ostreamStr
@@ -67,7 +67,12 @@ class FrameExtracter:
 
 		for s in sections:
 			source = parser.get(s, "source")
-			faces = parser.get(s, "faces")
+
+			try:
+				faces = parser.get(s, "faces")
+			except NoOptionError:
+				faces = None
+
 			timestamp = parser.get(s, "timestamp")
 
 			target = str(s) + ".png"
