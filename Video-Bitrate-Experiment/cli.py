@@ -8,7 +8,7 @@ from VideoConfigReader import ConfigReader
 from FaceRecognition import FaceRecognition
 
 import os.path as path
-
+import sys
 
 VERSION = "0.0.4"
 
@@ -109,6 +109,82 @@ class Controller(CementBaseController):
 				target = "out.png"
 
 			FrameExtracter.extractFrame(source, target, timestamp)
+
+	@expose()
+	def bin_results(self):
+		# This command puts all video frames in the appropriate folder named after their corresponding bit rate segment in the filename.
+		# This snippet was directly copied from a file previously named extract.py
+		# Excuse its alfulness
+
+		source = self.app.pargs.input
+
+		assert source is not None, "No input specified"
+
+		from os import walk, rename
+		import re
+
+		def explode_filename(filename):
+			m = re.search(r"(.+)_(.+?)_(.+?)_(.+?)_(.+?)_(.+?)\.(.+?)$", filename)
+
+			if m is not None:
+				name = m.group(1)
+				dimensions = m.group(2)
+				fps = m.group(3)
+				encoding = m.group(4)
+				bitrate = m.group(5)
+				timestamp = m.group(6)
+				return (name, dimensions, fps, encoding, bitrate, timestamp)
+			else:
+				return None
+
+		files = []
+		for (dirpath, dirnames, filenames) in walk(source):
+		    files.extend(filenames)
+		    break
+
+		for filename in files:
+			t = explode_filename(filename)
+
+			if t is not None:
+				name, dimensions, fps, encoding, bitrate, timestamp = t
+				rename(source + filename, source + bitrate + "/" + filename)
+
+	@expose()
+	def extract_logs(self):
+		# This command extracts the result logs and prints them into stdout or a file in csv format.
+		# This snippet was directly copied from a file previously named extract.py
+		# Excuse its alfulness
+
+		source = self.app.pargs.input
+		target = self.app.pargs.output
+
+		import re
+
+		def find(str):
+			m = re.search(r"Found (\d) faces of (\d) faces at \"(.+)\"", str)
+			return (m.group(1), m.group(2), m.group(3))
+
+		def explode_filename(filename):
+			m = re.search(r"/(.+)_(.+?)_(.+?)_(.+?)_(.+?)_(.+?)\.(.+?)$", filename)
+			name = m.group(1)
+			dimensions = m.group(2)
+			fps = m.group(3)
+			encoding = m.group(4)
+			bitrate = m.group(5)
+			timestamp = m.group(6)
+			return (name, dimensions, fps, encoding, bitrate, timestamp)
+
+		assert source is not None, "No input specified"
+		fin = open(source)
+
+		if target is not None:
+			fout = open(target, "w+")
+		else:
+			fout = sys.stdout
+
+		for line in fin:
+			faces_found, faces_expected, fileDir = find(line.strip())
+			print("; ".join(explode_filename(fileDir)), str(faces_found), str(faces_expected), sep="; ", file=fout)
 
 	@expose()
 	def face_recognition_test(self):
